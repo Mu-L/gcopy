@@ -3,8 +3,10 @@ package server
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +14,7 @@ import (
 	"github.com/llaoj/gcopy/internal/config"
 	"github.com/llaoj/gcopy/internal/gcopy"
 	"github.com/llaoj/gcopy/internal/server/auth"
+	"github.com/llaoj/gcopy/internal/static"
 	"github.com/llaoj/gcopy/pkg/utils"
 	"github.com/mileusna/useragent"
 	"github.com/sirupsen/logrus"
@@ -72,6 +75,44 @@ func (s *Server) Run() {
 	v1.Use(s.verifyAuthMiddleware)
 	v1.GET("/clipboard", s.getClipboardHandler)
 	v1.POST("/clipboard", s.updateClipboardHandler)
+
+	// Static files from embedded frontend
+	assetFS := static.AssetFS()
+	r.Use(s.cacheMiddleware())
+	r.GET("/", s.rootRedirectHandler)
+	staticServer := http.FileServer(http.FS(assetFS))
+	r.GET("/_next/*filepath", gin.WrapH(staticServer))
+	r.GET("/gcopy.svg", func(c *gin.Context) {
+		data, err := fs.ReadFile(assetFS, "gcopy.svg")
+		if err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.Data(http.StatusOK, "image/svg+xml", data)
+	})
+	r.GET("/favicon.ico", func(c *gin.Context) {
+		data, err := fs.ReadFile(assetFS, "favicon.ico")
+		if err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.Data(http.StatusOK, "image/x-icon", data)
+	})
+	for _, locale := range []string{"en", "zh"} {
+		l := locale
+		localeFS, _ := fs.Sub(assetFS, l)
+		localeServer := http.FileServer(http.FS(localeFS))
+		r.GET("/"+l, func(c *gin.Context) {
+			c.Request.URL.Path = "/"
+			localeServer.ServeHTTP(c.Writer, c.Request)
+		})
+		r.GET("/"+l+"/*filepath", func(c *gin.Context) {
+			c.Request.URL.Path = c.Param("filepath")
+			localeServer.ServeHTTP(c.Writer, c.Request)
+		})
+	}
+	r.NoRoute(s.spaFallbackHandler(assetFS))
+
 	s.log.Info("The server has started!")
 	if err := r.Run(s.config.Listen); err != nil {
 		s.log.Fatal(err)
@@ -192,4 +233,45 @@ func (s *Server) updateClipboardHandler(c *gin.Context) {
 
 	c.Header("X-Index", strconv.Itoa(cb.Index))
 	c.JSON(http.StatusOK, gin.H{"message": "Success"})
+}
+
+func (s *Server) rootRedirectHandler(c *gin.Context) {
+	acceptLang := c.GetHeader("Accept-Language")
+	locale := "en"
+	if acceptLang != "" {
+		zhPos := strings.Index(acceptLang, "zh")
+		enPos := strings.Index(acceptLang, "en")
+		if zhPos != -1 && (enPos == -1 || zhPos < enPos) {
+			locale = "zh"
+		}
+	}
+	c.Redirect(http.StatusFound, "/"+locale+"/")
+}
+
+func (s *Server) cacheMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		path := c.Request.URL.Path
+		if strings.HasPrefix(path, "/_next/static/") {
+			c.Header("Cache-Control", "public, max-age=31536000, immutable")
+		} else {
+			c.Header("Cache-Control", "no-cache")
+		}
+		c.Next()
+	}
+}
+
+func (s *Server) spaFallbackHandler(assetFS fs.FS) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		path := c.Request.URL.Path
+		for _, locale := range []string{"en", "zh"} {
+			if strings.HasPrefix(path, "/"+locale+"/") || path == "/"+locale {
+				data, err := fs.ReadFile(assetFS, locale+"/index.html")
+				if err == nil {
+					c.Data(http.StatusOK, "text/html; charset=utf-8", data)
+					return
+				}
+			}
+		}
+		c.Status(http.StatusNotFound)
+	}
 }
