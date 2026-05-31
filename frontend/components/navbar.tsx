@@ -2,7 +2,8 @@
 
 import Avator from "@/components/avator";
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { useLocale } from "@/lib/i18n";
 import useAuth from "@/lib/auth";
 import useSystemInfo from "@/hooks/useSystemInfo";
 import pack from "@/package.json";
@@ -105,7 +106,7 @@ export default function Navbar() {
         ) : systemInfo?.authMode ? (
           <Link
             className="btn"
-            href={getLoginPath(systemInfo.authMode, locale)}
+            href={getLoginPath(systemInfo.authMode)}
           >
             {t("signIn")}
           </Link>

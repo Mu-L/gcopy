@@ -2,7 +2,8 @@
 
 import { Suspense, FormEvent, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { useLocale } from "@/lib/i18n";
 import Logo from "@/components/logo";
 
 function TokenLoginForm() {
@@ -78,7 +79,7 @@ function TokenLoginForm() {
     });
 
     if (res.status == 200) {
-      router.push(`/${locale}`);
+      router.push(`/`);
       return;
     }
 
@@ -110,7 +111,7 @@ function TokenLoginForm() {
                 setCopied(false);
               } else {
                 // 否则返回首页
-                router.push(`/${locale}`);
+                router.push(`/`);
               }
             }}
           >
@@ -286,7 +287,7 @@ function TokenLoginForm() {
                 <div className="card-actions justify-end">
                   <button
                     className="btn btn-primary"
-                    onClick={() => router.push(`/${locale}`)}
+                    onClick={() => router.push(`/`)}
                   >
                     {t("startUsing")}
                   </button>

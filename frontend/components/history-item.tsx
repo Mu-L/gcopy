@@ -17,7 +17,7 @@ import {
   FileInfo,
 } from "@/lib/clipboard";
 import { browserName } from "react-device-detect";
-import { useLocale } from "next-intl";
+import { useLocale } from "@/lib/i18n";
 
 // 自定义比较函数：只有核心字段变化时才重新渲染
 function arePropsEqual(

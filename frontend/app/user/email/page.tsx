@@ -2,7 +2,8 @@
 
 import { Suspense, FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { useLocale } from "@/lib/i18n";
 import Logo from "@/components/logo";
 
 function EmailForm() {
@@ -44,7 +45,7 @@ function EmailForm() {
       window.history.pushState(
         {},
         "",
-        `/${locale}/user/email?email=${emailValue}`,
+        `/user/email?email=${emailValue}`,
       );
     } else {
       setErrorMessage(t("sendEmailFailed"));
@@ -86,7 +87,7 @@ function EmailForm() {
     });
 
     if (res.status === 200) {
-      router.push(`/${locale}/`);
+      router.push(`/`);
       return;
     }
 
@@ -97,7 +98,7 @@ function EmailForm() {
   const handleBack = () => {
     setStep("email");
     setErrorMessage("");
-    window.history.pushState({}, "", `/${locale}/user/email`);
+    window.history.pushState({}, "", `/user/email`);
   };
 
   return (

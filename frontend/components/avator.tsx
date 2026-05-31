@@ -3,7 +3,8 @@ import { QRCodeSVG } from "qrcode.react";
 import useAuth from "@/lib/auth";
 import useSystemInfo from "@/hooks/useSystemInfo";
 import { useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
+import { useLocale } from "@/lib/i18n";
 import { getLoginPath, redirectToLogin } from "@/lib/navigation";
 
 export default function Avator() {
@@ -30,7 +31,7 @@ export default function Avator() {
     }
 
     const baseUrl = window.location.origin;
-    const loginPath = getLoginPath(systemInfo.authMode, locale);
+    const loginPath = getLoginPath(systemInfo.authMode);
     const encodedUserId = encodeURIComponent(userId);
 
     if (systemInfo.authMode === "email") {
@@ -48,7 +49,7 @@ export default function Avator() {
     setClicked(true);
     await logout();
     if (systemInfo?.authMode) {
-      redirectToLogin(router, systemInfo.authMode, locale);
+      redirectToLogin(router, systemInfo.authMode);
     }
   };
 
