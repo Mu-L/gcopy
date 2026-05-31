@@ -4,3 +4,4 @@ frontend/.env
 output/
 bin/
 .vscode
+internal/static/dist/

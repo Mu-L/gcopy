@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Convert environment variables to command line flags for gcopy backend
+# Convert environment variables to command line flags for gcopy
 # Environment variables use GCOPY_ prefix to avoid conflicts
 
 set -e
@@ -42,7 +42,7 @@ if [ "$GCOPY_SMTP_SSL" = "true" ]; then
     ARGS="$ARGS -smtp-ssl"
 fi
 
-# Server configuration
+# Server configuration (default listen address is :3375)
 if [ -n "$GCOPY_LISTEN" ]; then
     ARGS="$ARGS -listen=$GCOPY_LISTEN"
 fi
@@ -56,6 +56,4 @@ if [ "$GCOPY_DEBUG" = "true" ]; then
     ARGS="$ARGS -debug"
 fi
 
-# Start backend with converted arguments
-# Supervisor will automatically add process name prefix to logs
 exec /app/bin/gcopy $ARGS

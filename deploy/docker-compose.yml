@@ -15,7 +15,7 @@ services:
       - GCOPY_AUTH_MODE=email
 
       # Server configuration
-      - GCOPY_LISTEN=0.0.0.0:3376
+      - GCOPY_LISTEN=0.0.0.0:3375
       - GCOPY_MAX_CONTENT_LENGTH=10
 
       # SMTP configuration (required for email auth mode)

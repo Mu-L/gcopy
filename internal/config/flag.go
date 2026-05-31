@@ -16,7 +16,7 @@ func Get() *Config {
 	debug := flag.Bool("debug", false, "Enable debug mode")
 	appKey := flag.String("app-key", "", "Encryption Key")
 
-	listen := flag.String("listen", ":3376", "The server will listen this ip and port, format: [ip]:port")
+	listen := flag.String("listen", ":3375", "The server will listen this ip and port, format: [ip]:port")
 
 	smtpHost := flag.String("smtp-host", "", "Represents the host of the SMTP server.")
 	smtpPort := flag.Int("smtp-port", 587, "Represents the port of the SMTP server.")

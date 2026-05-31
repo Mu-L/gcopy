@@ -1,6 +1,7 @@
 .PHONY: all \
         vet fmt version test \
-        push-container release clean gomod
+        push-container release clean gomod \
+        frontend-build
 
 # The set of OS_ARCH that GCopy can build against.
 DOCKER_PLATFORMS=linux/amd64,linux/arm64
@@ -26,9 +27,17 @@ CGO_ENABLED:=0
 # Set default Go architecture to AMD64.
 GOARCH ?= amd64
 
+# Frontend build output directory for Go embed
+STATIC_DIR=internal/static/dist
+
 version:
 	@echo $(VERSION)
 	cd frontend && npm version $(VERSION) --allow-same-version && npm run prettier && cd ..
+
+frontend-build:
+	rm -rf $(STATIC_DIR)
+	cd frontend && npm ci && npm run build
+	cp -r frontend/out $(STATIC_DIR)
 
 vet:
 	go list -tags "" ./... | grep -v "./vendor/*" | xargs go vet -tags ""
@@ -40,7 +49,13 @@ fmt:
 test: vet fmt
 	go test -timeout=1m -v -race -short ./...
 
-./bin/gcopy:
+./bin/gcopy: frontend-build
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=linux GOARCH=$(GOARCH) go build \
+		-o bin/gcopy \
+		-ldflags '-X $(PKG)/pkg/version.version=$(VERSION)' \
+		./cmd
+
+./bin/gcopy-go:
 	CGO_ENABLED=$(CGO_ENABLED) GOOS=linux GOARCH=$(GOARCH) go build \
 		-o bin/gcopy \
 		-ldflags '-X $(PKG)/pkg/version.version=$(VERSION)' \
@@ -52,6 +67,7 @@ push-container: clean
 
 clean:
 	rm -rf bin/
+	rm -rf internal/static/dist/
 	rm -f coverage.out
 
 gomod:
