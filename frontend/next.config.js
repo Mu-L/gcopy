@@ -2,15 +2,11 @@ const withNextIntl = require("next-intl/plugin")("./i18n.ts");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
-  async rewrites() {
-    return [
-      {
-        source: "/api/v1/:path*",
-        destination: process.env.SERVER_URL + "/api/v1/:path*",
-      },
-    ];
+  output: "export",
+  images: {
+    unoptimized: true,
   },
+  trailingSlash: true,
 };
 
 module.exports = withNextIntl(nextConfig);

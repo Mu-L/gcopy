@@ -1,18 +1,15 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import Logo from "@/components/logo";
 
-export default function Email({
-  searchParams,
-}: {
-  searchParams: { email?: string };
-}) {
+function EmailForm() {
+  const searchParams = useSearchParams();
   const [clicked, setClicked] = useState<boolean>(false);
   const [step, setStep] = useState<"email" | "code">("email");
-  const [email, setEmail] = useState<string>(searchParams.email || "");
+  const [email, setEmail] = useState<string>(searchParams.get("email") || "");
   const [errorMessage, setErrorMessage] = useState("");
   const locale = useLocale();
   const t = useTranslations("EmailLogin");
@@ -177,5 +174,13 @@ export default function Email({
         </div>
       </div>
     </form>
+  );
+}
+
+export default function Email() {
+  return (
+    <Suspense>
+      <EmailForm />
+    </Suspense>
   );
 }

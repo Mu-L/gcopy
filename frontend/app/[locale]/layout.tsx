@@ -1,4 +1,10 @@
 import { Inter } from "next/font/google";
+import { locales } from "@/lib/i18n";
+import { unstable_setRequestLocale } from "next-intl/server";
+
+export function generateStaticParams() {
+  return locales.map((locale: string) => ({ locale }));
+}
 import "@/app/globals.css";
 import { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
@@ -10,6 +16,7 @@ export async function generateMetadata({
 }: {
   params: { locale: string };
 }) {
+  unstable_setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "Metadata" });
   return {
     title: t("title"),
@@ -33,6 +40,7 @@ export default function RootLayout({
   children: ReactNode;
   params: { locale: string };
 }) {
+  unstable_setRequestLocale(locale);
   return (
     <html lang={locale}>
       <body className={`${inter.className} bg-base-200`}>{children}</body>

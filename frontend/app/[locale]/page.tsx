@@ -1,4 +1,10 @@
+import { locales } from "@/lib/i18n";
 import Navbar from "@/components/navbar";
+import { unstable_setRequestLocale } from "next-intl/server";
+
+export function generateStaticParams() {
+  return locales.map((locale: string) => ({ locale }));
+}
 import SyncClipboard from "@/components/sync-clipboard";
 import Notice from "@/components/notice";
 import Footer from "@/components/footer";
@@ -9,6 +15,7 @@ export default function Home({
 }: {
   params: { locale: string };
 }) {
+  unstable_setRequestLocale(locale);
   const messages = useMessages();
   return (
     <div className="min-h-screen flex flex-col items-center justify-between mx-auto  max-w-5xl">
